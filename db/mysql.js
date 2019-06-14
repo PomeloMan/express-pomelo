@@ -11,7 +11,7 @@ const pool = mysql.createPool({
 });
 
 var _client = {
-    select: function (sql) {
+    query: function (sql) {
         return new Promise(function (resolve, reject) {
             pool.query(sql, function (err, results, fields) {
                 if (err) {
@@ -19,9 +19,9 @@ var _client = {
                     reject(err);
                 } else {
                     resolve({
-                        err: err,
-                        results: results,
-                        fields: fields
+                        success: true,
+                        results: results
+                        // fields: fields
                     })
                 }
             });

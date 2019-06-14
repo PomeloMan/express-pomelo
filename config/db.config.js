@@ -4,7 +4,7 @@ config = {
         port: '3306',
         user: 'root',
         password: 'root',
-        database: 'world'
+        database: 'pomelo'
     },
     mongodb: {
         user: encodeURIComponent('pomelor'),
