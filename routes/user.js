@@ -13,7 +13,7 @@ router.get('/', function (req, res, next) {
   if (appConfig.useMockData) {
     return res.json(listJson);
   } else {
-    mysqlClient.query('select * from sys_user').then(result => {
+    mysqlClient.exec('select * from sys_user').then(result => {
       return res.json(result);
     }).catch(err => next(err));
   }
@@ -25,10 +25,10 @@ router.post('/page', function (req, res, next) {
   sql += ` limit ${(req.body.pageIndex - 1) * req.body.pageSize}, ${req.body.pageSize}`;
 
   Promise.all([
-    mysqlClient.query(countSql).then(data => {
+    mysqlClient.exec(countSql).then(data => {
       return data.results[0].total;
     }),
-    mysqlClient.query(sql).then(data => {
+    mysqlClient.exec(sql).then(data => {
       return data.results;
     })
   ]).then(([total, data]) => {
@@ -46,12 +46,32 @@ router.post('/page', function (req, res, next) {
 })
 
 router.post('', function (req, res, next) {
-  // INSERT INTO sys_user (username, email, version) VALUES (1,1,0), (2,2,0)
-  mysqlClient.query(
-    `insert into sys_user (username, email, created_date, version) values ('${req.body.username}', '${req.body.email}', now(), 0)`
-  ).then(data => {
-    return res.json(data);
-  }).catch(err => next(err))
+  mysqlClient.pool.getConnection((err, conn) => {
+    if (err) throw err;
+    conn.beginTransaction(function (err) {
+      if (err) throw err;
+      Promise.all([
+        mysqlClient.exec(
+          conn,
+          `insert into sys_user (username, email, created_date, version) values ('${req.body.username}', '${req.body.email}', now(), 0)`,
+        ).then(data => {
+          return data
+        }),
+        mysqlClient.exec(
+          conn,
+          `insert into sys_user_roles (user_username, roles_name) values ('${req.body.username}', '${req.body.role}')`,
+        ).then(data => {
+          return data
+        })
+      ]).then(data => {
+        conn.commit(() => {});
+        return res.json(data);
+      }).catch(err => {
+        conn.rollback(() => {});
+        next(err)
+      })
+    })
+  })
 })
 
 router.get('/test', function (req, res, next) {
