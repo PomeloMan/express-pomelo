@@ -6,6 +6,7 @@
     "start": "supervisor ./bin/www"
   },
   "dependencies": {
+    "@turf/turf": "^5.1.6",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
@@ -14,7 +15,7 @@
     "mongodb": "^3.1.8",
     "morgan": "~1.9.0",
     "mysql": "^2.16.0",
-    "pug": "2.0.0-beta11",
+    "pug": "^2.0.4",
     "supervisor": "^0.12.0"
   }
 }
